@@ -1,0 +1,9 @@
+.DS_Store
+env.local
+.env
+data/
+__pycache__/
+*.pyc
+.venv/
+.cache/
+outputs/
