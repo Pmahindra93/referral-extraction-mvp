@@ -34,12 +34,17 @@ def main() -> None:
         try:
             extracted = extract(path, use_cache=not args.no_cache).model_dump()
         except Exception as e:
-            # Score against an empty record so the failure counts as misses in
-            # every total instead of silently shrinking the denominator.
             print(f"EXTRACTION FAILED: {e} — scoring all fields as misses")
-            extracted = {}
+            extracted = None
 
-        results = compare_record(truth, extracted)
+        results = compare_record(truth, extracted or {})
+        if extracted is None:
+            # Force every comparison to a miss: compare_record substitutes empty
+            # defaults, which would let ground-truth-empty fields "match" a
+            # document we never extracted.
+            for r in results.values():
+                r["match"] = False
+                r["actual"] = "<extraction failed>"
         matched = sum(r["match"] for r in results.values())
         per_file[file_name] = matched / len(results)
         if extracted:

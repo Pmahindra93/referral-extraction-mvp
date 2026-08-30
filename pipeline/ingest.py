@@ -69,9 +69,16 @@ def _image_within_limit(path: Path) -> tuple[bytes, str]:
         data = _to_jpeg(image, quality)
         if len(data) <= MAX_RAW_IMAGE_BYTES:
             return data, "image/jpeg"
-    # Last resort: halve the resolution (still ample for reading typed text).
-    image = image.reduce(2)
-    return _to_jpeg(image, 80), "image/jpeg"
+    # Halve the resolution until the encoded size actually fits (still ample
+    # for reading typed text); below ~200px there is nothing left to read.
+    while image.width >= 400 and image.height >= 400:
+        image = image.reduce(2)
+        data = _to_jpeg(image, 80)
+        if len(data) <= MAX_RAW_IMAGE_BYTES:
+            return data, "image/jpeg"
+    raise ValueError(
+        f"{path.name} cannot be compressed under the API image size limit"
+    )
 
 
 def ingest(path: Path) -> list[dict]:
