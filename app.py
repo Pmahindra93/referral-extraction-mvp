@@ -22,8 +22,40 @@ from pipeline.registry import DEFAULT_SCHEMA, get_schema
 from pipeline.validate import cross_model_flags, validate
 
 st.set_page_config(page_title="Referral Extraction", layout="wide")
+
+st.markdown("""<style>
+/* slim clinical rule at the very top; hide app-builder chrome */
+[data-testid="stHeader"] { background: #0F6E84; height: 0.3rem; }
+[data-testid="stToolbar"], footer { display: none; }
+
+/* page title in Streamlit's native serif — the "form header" voice */
+h1 { font-family: "Source Serif Pro", "Source Serif 4", Georgia, serif;
+     font-weight: 600; letter-spacing: -0.01em; }
+h3 { font-weight: 600; font-size: 1.05rem; }
+
+/* eyebrow label above the title */
+.eyebrow { font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase;
+           color: #0F6E84; font-weight: 600; margin-bottom: -0.6rem; }
+
+/* signature: extracted values read like typed record entries —
+   monospace makes character-level checking against the scan easier */
+[data-testid="stTextInput"] input, [data-testid="stTextArea"] textarea {
+  font-family: "Source Code Pro", ui-monospace, Menlo, monospace;
+  font-size: 0.85rem; background: #FFFFFF; }
+
+/* field labels: quiet, uppercase, like a printed proforma */
+[data-testid="stWidgetLabel"] p { font-size: 0.72rem; letter-spacing: 0.06em;
+  text-transform: uppercase; color: #5A6B72; }
+
+/* expanders as clean record sections */
+[data-testid="stExpander"] { border: 1px solid #E2E6E5; border-radius: 6px;
+  background: #FFFFFF; }
+[data-testid="stExpander"] summary { font-weight: 600; }
+</style>""", unsafe_allow_html=True)
+
+st.markdown('<p class="eyebrow">Clinic ops · Referral intake</p>', unsafe_allow_html=True)
 st.title("Referral letter extraction")
-st.caption("Upload referral letters. Fields flagged 🚩 need a human check.")
+st.caption("Upload referral letters. Flagged fields need a human check before the record is trusted.")
 
 
 def show_letter(name: str, data: bytes) -> None:
@@ -59,7 +91,7 @@ def get_cross_flags(file_name: str, schema_name: str) -> dict[str, str]:
 def edit_field(field: str, value, flags: dict, key_prefix: str):
     label = field.replace("_", " ")
     if field in flags:
-        label = f"🚩 {label}"
+        label = f"⚑ {label}"
         st.warning(f"**{field}**: {flags[field]}")
     key = f"{key_prefix}:{field}"
     if isinstance(value, bool):
@@ -106,11 +138,11 @@ for tab, upload in zip(tabs, uploads):
 
         if schema.name != DEFAULT_SCHEMA:
             st.info(
-                f"ℹ️ Not a haematology 2WW letter — extracted with the "
+                f"Not a haematology 2WW letter — extracted with the "
                 f"**{schema.display_name}** schema instead."
             )
         if "document_type" in flags:
-            st.error(f"⛔ {flags['document_type']}. Fields below are best-effort only.")
+            st.error(f"{flags['document_type']}. Fields below are best-effort only.")
         if record.additional_findings.strip():
             st.warning(f"**Additional findings:** {record.additional_findings}")
         if cross_check:
@@ -124,11 +156,11 @@ for tab, upload in zip(tabs, uploads):
             else:
                 st.success("Cross-model check: the second model agrees on every field")
         if flags:
-            with st.expander(f"🚩 {len(flags)} field(s) flagged for review"):
+            with st.expander(f"Review needed — {len(flags)} flagged field(s)"):
                 for field, reason in flags.items():
                     st.markdown(f"- **{field}** — {reason}")
         else:
-            st.success("No fields flagged")
+            st.success("Clean extraction — no fields flagged")
         download_slot = st.container()
 
         left, right = st.columns([1, 1])
@@ -162,7 +194,7 @@ for tab, upload in zip(tabs, uploads):
         # edit triggers a rerun before the download can be clicked.
         with download_slot:
             st.download_button(
-                "⬇️ Download reviewed JSON",
+                "Download reviewed JSON",
                 json.dumps(final, indent=2),
                 file_name=f"{Path(upload.name).stem}.json",
                 mime="application/json",
