@@ -42,9 +42,10 @@ rules. Tick items as they land; each step gets its own branch, merged to `main` 
       scans); Codex findings from PRs 3/4/5/8 fixed; gpt-5.6-terra cross-check
       via responses.parse. Ceiling notes for README: language/ethnicity absent
       from narrative letters (~4%), cropped scans unwinnable but flagged.
-- [ ] **Step 7 — README**: architecture, BYOK setup, accuracy result, decisions,
-      what I'd do next (per-field confidence scores; more specialty schemas —
-      now just config files; smarter routing). Blocked on the live eval number.
+- [x] **Step 7b — Docs**: README.md (architecture, BYOK, 84.9% + scoring rules,
+      model comparison, next steps) and PROCESS.md (decision log: human vs AI
+      calls, review findings, honest mistakes, accuracy timeline). PROJECT
+      COMPLETE — all PRs merged to main.
 
 ## Next session: start here
 
