@@ -32,8 +32,12 @@ rules. Tick items as they land; each step gets its own branch, merged to `main` 
       cross-model disagreement flags (flags only, never overwrites)
 - [x] **Step 6 — UI** (PR #6): Streamlit upload + tabbed side-by-side review + JSON
       export; headless AppTest render passes
+- [x] **Step 6.5 — Edge-case guards** (PR #7): `document_type` triage flag +
+      `additional_findings` catch-all; eval verified unaffected
 - [ ] **Step 7 — README**: architecture, BYOK setup, accuracy result, decisions,
-      what I'd do next. Blocked on the live eval number.
+      what I'd do next. Blocked on the live eval number. Include in "next": schema
+      registry (per-specialty schemas as config — pipeline is already schema-driven)
+      and per-field confidence scores.
 
 ## Next session: start here
 
