@@ -63,7 +63,9 @@ with header_right:
         "Cross-check with a second model",
         value=bool(config.OPENAI_API_KEY),
         disabled=not config.OPENAI_API_KEY,
-        help="An independent model re-reads each letter; disagreements are flagged. Needs OPENAI_API_KEY in env.local.",
+        help="An independent model re-reads each letter; disagreements are flagged. "
+             "Note: letter content is sent to OpenAI as well as Anthropic while this "
+             "is on. Needs OPENAI_API_KEY in env.local.",
     )
 
 
