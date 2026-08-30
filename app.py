@@ -88,9 +88,14 @@ def get_cross_flags(file_name: str, schema_name: str) -> dict[str, str]:
     return cross_model_flags(path, record, schema)
 
 
-def edit_field(field: str, value, flags: dict, key_prefix: str):
+def edit_field(field: str, value, flags: dict, key_prefix: str,
+               cross_fields: frozenset = frozenset()):
     label = field.replace("_", " ")
-    if field in flags:
+    if field in cross_fields:
+        label = f"⚑ {label}"
+        st.info(f"**{field}** — second model found a different value: "
+                f"{flags[field].removeprefix('second model read ')}")
+    elif field in flags:
         label = f"⚑ {label}"
         st.warning(f"**{field}**: {flags[field]}")
     key = f"{key_prefix}:{field}"
@@ -130,6 +135,9 @@ for tab, upload in zip(tabs, uploads):
             disagreements = (
                 get_cross_flags(upload.name, schema.name) if cross_check else {}
             )
+            cross_fields = frozenset(
+                f for f in disagreements if f not in flags
+            )
             for field, reason in disagreements.items():
                 flags.setdefault(field, reason)
         except Exception as e:
@@ -158,7 +166,8 @@ for tab, upload in zip(tabs, uploads):
         if flags:
             with st.expander(f"Review needed — {len(flags)} flagged field(s)"):
                 for field, reason in flags.items():
-                    st.markdown(f"- **{field}** — {reason}")
+                    source = "second model" if field in cross_fields else "checks"
+                    st.markdown(f"- **{field}** ({source}) — {reason}")
         else:
             st.success("Clean extraction — no fields flagged")
         download_slot = st.container()
@@ -178,11 +187,12 @@ for tab, upload in zip(tabs, uploads):
                         if isinstance(value, dict):  # nested object, e.g. fbc
                             edited[field] = {
                                 sub: edit_field(f"{field}.{sub}", sub_value, flags,
-                                                upload.name)
+                                                upload.name, cross_fields)
                                 for sub, sub_value in value.items()
                             }
                         else:
-                            edited[field] = edit_field(field, value, flags, upload.name)
+                            edited[field] = edit_field(field, value, flags,
+                                                       upload.name, cross_fields)
 
         final = build_output(
             upload.name,
