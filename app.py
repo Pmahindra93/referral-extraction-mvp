@@ -33,6 +33,7 @@ FIELD_GROUPS = {
                  "splenomegaly", "lymph_node_size_cm", "lymph_node_site", "symptoms",
                  "myeloma_features", "investigations", "medical_history", "comments",
                  "discussed_with_patient"],
+    "Triage": ["document_type", "additional_findings"],
 }
 
 
@@ -101,6 +102,10 @@ for tab, upload in zip(tabs, uploads):
             st.error(f"Extraction failed: {e}")
             continue
 
+        if "document_type" in flags:
+            st.error(f"⛔ {flags['document_type']}. Fields below are best-effort only.")
+        if record.additional_findings.strip():
+            st.warning(f"**Additional findings:** {record.additional_findings}")
         if flags:
             st.warning(f"{len(flags)} field(s) flagged for review")
         else:

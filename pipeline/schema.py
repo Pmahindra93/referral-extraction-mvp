@@ -16,6 +16,24 @@ class FullBloodCount(BaseModel):
 
 
 class ReferralRecord(BaseModel):
+    # Triage guards (not part of the eval dataset)
+    document_type: str = Field(
+        "",
+        description=(
+            "'referral' if this document is a GP referral letter for the urgent "
+            "suspected-cancer haematology pathway. Otherwise a short description of "
+            "what the document actually is, e.g. 'discharge summary', "
+            "'clinic appointment letter', 'not a medical document'."
+        ),
+    )
+    additional_findings: str = Field(
+        "",
+        description=(
+            "Anything clinically or administratively significant in the letter that "
+            "does not fit any other field — e.g. safeguarding concerns, allergy "
+            "warnings, DNR status, a second patient mentioned. Empty string if none."
+        ),
+    )
     # Patient demographics
     title: str = Field("", description="Patient title: Mr/Mrs/Ms/Miss/Dr etc.")
     first_name: str = ""

@@ -1,9 +1,11 @@
 """Validate stage: flag fields for human review. NEVER changes extracted values.
 
-Two layers:
-1. Format checks (pure, free, always on): dates, NHS number, UBRN, postcode,
+Three layers:
+1. Triage guards (pure, always on): is this actually a 2WW haematology referral,
+   and did the model find significant information outside the standard fields?
+2. Format checks (pure, free, always on): dates, NHS number, UBRN, postcode,
    sex, discussed_with_patient.
-2. Cross-model check (optional, needs OPENAI_API_KEY): GPT independently extracts
+3. Cross-model check (optional, needs OPENAI_API_KEY): GPT independently extracts
    the same letter; fields where the two models disagree are flagged.
 """
 
@@ -27,6 +29,25 @@ _FORMAT_RULES = {
 }
 
 _CRITICAL_FIELDS = ["nhs_number", "date_of_birth", "surname", "suspected_pathway"]
+
+EXPECTED_DOCUMENT_TYPE = "referral"
+
+
+def triage_flags(record: ReferralRecord) -> dict[str, str]:
+    """Guards against processing the wrong document or silently dropping info."""
+    flags = {}
+    doc_type = record.document_type.strip().lower()
+    if doc_type != EXPECTED_DOCUMENT_TYPE:
+        described = record.document_type or "unknown document type"
+        flags["document_type"] = (
+            f"model does not think this is a 2WW haematology referral "
+            f"(read it as: '{described}') — needs human triage"
+        )
+    if record.additional_findings.strip():
+        flags["additional_findings"] = (
+            "significant information found outside the standard fields — review"
+        )
+    return flags
 
 
 def format_flags(record: ReferralRecord) -> dict[str, str]:
@@ -55,6 +76,8 @@ def cross_model_flags(path: Path, record: ReferralRecord) -> dict[str, str]:
     flags = {}
     ours = record.model_dump()
     for field, our_value in ours.items():
+        if field in ("document_type", "additional_findings"):
+            continue  # free-text triage fields; models word these differently
         if field == "fbc":
             for sub, our_sub in our_value.items():
                 their_sub = (other.get("fbc") or {}).get(sub, "")
@@ -110,7 +133,7 @@ def _openai_extract(path: Path) -> dict:
 
 def validate(path: Path, record: ReferralRecord, cross_check: bool = False) -> dict[str, str]:
     """All review flags for one extracted record: {field: reason}."""
-    flags = format_flags(record)
+    flags = {**triage_flags(record), **format_flags(record)}
     if cross_check:
         for field, reason in cross_model_flags(path, record).items():
             flags.setdefault(field, reason)

@@ -1,11 +1,12 @@
 """Unit tests for the pure format-check layer of validation (no API)."""
 
 from pipeline.schema import ReferralRecord
-from pipeline.validate import format_flags
+from pipeline.validate import format_flags, triage_flags
 
 
 def _valid_record() -> ReferralRecord:
     return ReferralRecord(
+        document_type="referral",
         surname="Bennett",
         sex="M",
         date_of_birth="07/01/1946",
@@ -43,3 +44,25 @@ def test_empty_critical_fields_are_flagged():
 def test_empty_optional_fields_are_not_flagged():
     record = _valid_record().model_copy(update={"ubrn": "", "mobile": ""})
     assert format_flags(record) == {}
+
+
+def test_expected_referral_has_no_triage_flags():
+    assert triage_flags(_valid_record()) == {}
+
+
+def test_wrong_document_type_is_flagged_for_triage():
+    record = _valid_record().model_copy(update={"document_type": "discharge summary"})
+    flags = triage_flags(record)
+    assert "discharge summary" in flags["document_type"]
+
+
+def test_unknown_document_type_is_flagged_for_triage():
+    record = _valid_record().model_copy(update={"document_type": ""})
+    assert "document_type" in triage_flags(record)
+
+
+def test_additional_findings_are_flagged():
+    record = _valid_record().model_copy(
+        update={"additional_findings": "Penicillin allergy noted in margin"}
+    )
+    assert "additional_findings" in triage_flags(record)
