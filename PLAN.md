@@ -34,10 +34,11 @@ rules. Tick items as they land; each step gets its own branch, merged to `main` 
       export; headless AppTest render passes
 - [x] **Step 6.5 — Edge-case guards** (PR #7): `document_type` triage flag +
       `additional_findings` catch-all; eval verified unaffected
+- [x] **Step 6.6 — Schema registry** (PR #8): schemas as config (`schemas/*.json`),
+      generic_referral fallback + routing; eval verified unaffected
 - [ ] **Step 7 — README**: architecture, BYOK setup, accuracy result, decisions,
-      what I'd do next. Blocked on the live eval number. Include in "next": schema
-      registry (per-specialty schemas as config — pipeline is already schema-driven)
-      and per-field confidence scores.
+      what I'd do next (per-field confidence scores; more specialty schemas —
+      now just config files; smarter routing). Blocked on the live eval number.
 
 ## Next session: start here
 
