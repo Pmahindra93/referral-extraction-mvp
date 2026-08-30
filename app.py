@@ -17,7 +17,7 @@ import streamlit as st
 from pipeline import config
 from pipeline.ingest import ingest
 from pipeline.output import build_output
-from pipeline.process import extract_bytes
+from pipeline.process import extract_bytes, upload_path
 from pipeline.registry import DEFAULT_SCHEMA
 from pipeline.validate import validate
 
@@ -39,7 +39,7 @@ def show_letter(name: str, data: bytes) -> None:
         )
     else:
         # txt/docx/heic: show what the pipeline actually feeds the model
-        tmp = config.CACHE_DIR / "uploads" / name
+        tmp = upload_path(name)
         block = ingest(tmp)[0]
         if block["type"] == "text":
             st.text(block["text"])
@@ -85,7 +85,7 @@ for tab, upload in zip(tabs, uploads):
         try:
             with st.spinner(f"Extracting {upload.name}..."):
                 record, schema = extract_bytes(data, upload.name)
-                flags = validate(config.CACHE_DIR / "uploads" / upload.name,
+                flags = validate(upload_path(upload.name),
                                  record, schema, cross_check=cross_check)
         except Exception as e:
             st.error(f"Extraction failed: {e}")

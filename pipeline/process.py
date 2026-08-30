@@ -35,6 +35,9 @@ Extract the requested fields exactly as they appear in the letter. Rules:
   warnings, DNR status, a second patient), put it in additional_findings verbatim —
   never silently drop information. Leave additional_findings empty otherwise.
 - For scanned images, read carefully; transcribe exactly what is written.
+- If the document appears cropped, cut off, or partially illegible, say so in
+  additional_findings (e.g. 'left edge of the form is cut off') so a human
+  knows the extraction may be incomplete.
 
 {domain_prompt}"""
 
@@ -106,12 +109,21 @@ def extract_routed(path: Path, use_cache: bool = True) -> tuple[BaseModel, Schem
     return record, schema
 
 
+def upload_path(file_name: str) -> Path:
+    """Uploaded filenames are untrusted: reduce to a basename so absolute paths
+    and ../ components can't escape the uploads directory."""
+    safe_name = Path(file_name).name
+    if not safe_name or safe_name in (".", ".."):
+        raise ValueError(f"Invalid upload filename: {file_name!r}")
+    tmp_dir = config.CACHE_DIR / "uploads"
+    tmp_dir.mkdir(parents=True, exist_ok=True)
+    return tmp_dir / safe_name
+
+
 def extract_bytes(
     data: bytes, file_name: str, use_cache: bool = True
 ) -> tuple[BaseModel, Schema]:
     """Routed extraction entry point for uploaded files (UI)."""
-    tmp_dir = config.CACHE_DIR / "uploads"
-    tmp_dir.mkdir(parents=True, exist_ok=True)
-    tmp_path = tmp_dir / file_name
+    tmp_path = upload_path(file_name)
     tmp_path.write_bytes(data)
     return extract_routed(tmp_path, use_cache=use_cache)

@@ -86,6 +86,10 @@ class Schema:
             **{f: _field_definition(f, s) for f, s in fields.items()},
         )
         self.json_schema: dict = self.model.model_json_schema()
+        # Every field is required so the model must state each value explicitly.
+        # document_type in particular must never be omitted: it drives routing,
+        # and a silently-defaulted "" would misroute genuine specialty letters.
+        self.json_schema["required"] = list(self.json_schema["properties"])
 
 
 def _pascal_case(name: str) -> str:

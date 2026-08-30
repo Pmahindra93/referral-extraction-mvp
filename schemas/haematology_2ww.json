@@ -210,11 +210,11 @@
     },
     "comments": {
       "type": "str",
-      "description": "The referrer's remaining remarks not captured in any other field: urgency comments, discussions with specialists, safety-netting, patient concerns. In narrative letters these are usually the closing sentences before the sign-off. Do not leave this empty if such remarks exist."
+      "description": "The referrer's distinctive remarks only: patient-specific concerns, urgency observations, discussions with specialists, family history worries. EXCLUDE the clinical-suspicion statement ('Clinical picture is consistent with...', 'The film/FBC is concerning for...' — already captured by suspected_pathway) and standard boilerplate: 'The referral has (not) been discussed as an urgent suspected cancer referral', 'Please contact me on ... if further information is needed', greetings and sign-offs. Empty if nothing distinctive remains."
     },
     "discussed_with_patient": {
       "type": "str",
-      "description": "'Y' or 'N'",
+      "description": "'Y' or 'N'. In narrative letters, 'The referral has been discussed as an urgent suspected cancer referral' means 'Y'; 'has not been discussed' means 'N'.",
       "pattern": "^[YN]$",
       "hint": "expected 'Y' or 'N'"
     }
