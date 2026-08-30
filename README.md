@@ -147,7 +147,7 @@ UK-hosted or BAA-covered inference, and audit logging before touching patient da
 
 ## How this was built
 
-Built in ~a day of paired sessions with Claude Code (Anthropic's CLI agent), with
+Built in paired sessions with Claude Code (Anthropic's CLI agent), with
 GitHub PRs per step reviewed by a human + Codex review bot. The full decision log —
 including what the human changed about the AI's proposals and what the AI pushed
 back on — is in [PROCESS.md](PROCESS.md). Project rules the agent worked under are
