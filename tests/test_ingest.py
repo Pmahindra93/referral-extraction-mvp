@@ -53,3 +53,14 @@ def test_unsupported_extension_raises(tmp_path):
     bad.write_text("hello")
     with pytest.raises(ValueError):
         ingest(bad)
+
+
+def test_oversized_image_is_recompressed_under_api_limit():
+    from pipeline.ingest import MAX_RAW_IMAGE_BYTES
+    big = REFERRAL_DIR / "referral-hzq.png"  # 10.8MB as base64, over the 10MB cap
+    if big.stat().st_size * 4 / 3 < 10_485_760:
+        pytest.skip("dataset file no longer oversized")
+    blocks = ingest(big)
+    raw = len(base64.b64decode(blocks[0]["source"]["data"]))
+    assert raw <= MAX_RAW_IMAGE_BYTES
+    assert blocks[0]["source"]["media_type"] == "image/jpeg"

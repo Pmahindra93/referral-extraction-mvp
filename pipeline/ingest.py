@@ -19,6 +19,9 @@ pillow_heif.register_heif_opener()
 
 SUPPORTED_EXTENSIONS = {".txt", ".docx", ".pdf", ".png", ".jpg", ".jpeg", ".heic"}
 
+# Anthropic rejects images over 10MB once base64-encoded (~4/3 of raw bytes).
+MAX_RAW_IMAGE_BYTES = int(10_485_760 * 3 / 4 * 0.95)
+
 _IMAGE_MEDIA_TYPES = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg"}
 
 
@@ -46,11 +49,29 @@ def _docx_text(path: Path) -> str:
     return "\n".join(parts)
 
 
-def _heic_to_jpeg(path: Path) -> bytes:
-    image = Image.open(path).convert("RGB")
+def _to_jpeg(image: Image.Image, quality: int = 90) -> bytes:
     buffer = io.BytesIO()
-    image.save(buffer, format="JPEG", quality=90)
+    image.convert("RGB").save(buffer, format="JPEG", quality=quality)
     return buffer.getvalue()
+
+
+def _heic_to_jpeg(path: Path) -> bytes:
+    return _to_jpeg(Image.open(path))
+
+
+def _image_within_limit(path: Path) -> tuple[bytes, str]:
+    """Return (bytes, media_type), recompressing oversized scans to fit the API cap."""
+    data = path.read_bytes()
+    if len(data) <= MAX_RAW_IMAGE_BYTES:
+        return data, _IMAGE_MEDIA_TYPES[path.suffix.lower()]
+    image = Image.open(path)
+    for quality in (90, 80, 70):
+        data = _to_jpeg(image, quality)
+        if len(data) <= MAX_RAW_IMAGE_BYTES:
+            return data, "image/jpeg"
+    # Last resort: halve the resolution (still ample for reading typed text).
+    image = image.reduce(2)
+    return _to_jpeg(image, 80), "image/jpeg"
 
 
 def ingest(path: Path) -> list[dict]:
@@ -63,7 +84,8 @@ def ingest(path: Path) -> list[dict]:
     if ext == ".pdf":
         return [_base64_block("document", "application/pdf", path.read_bytes())]
     if ext in _IMAGE_MEDIA_TYPES:
-        return [_base64_block("image", _IMAGE_MEDIA_TYPES[ext], path.read_bytes())]
+        data, media_type = _image_within_limit(path)
+        return [_base64_block("image", media_type, data)]
     if ext == ".heic":
         return [_base64_block("image", "image/jpeg", _heic_to_jpeg(path))]
     raise ValueError(f"Unsupported file type: {path.name}")
