@@ -25,7 +25,7 @@ st.set_page_config(page_title="Referral Extraction", layout="wide")
 
 st.markdown("""<style>
 /* slim clinical rule at the very top; hide app-builder chrome */
-[data-testid="stHeader"] { background: transparent; height: 0.5rem; border-bottom: 1px solid #E2E6E5; }
+[data-testid="stHeader"] { background: transparent; height: 0; }
 [data-testid="stToolbar"], footer { display: none; }
 
 /* page title in Streamlit's native serif — the "form header" voice */
