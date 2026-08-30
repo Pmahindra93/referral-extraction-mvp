@@ -108,9 +108,15 @@ documents is comfortably in the range of published human chart-abstraction accur
 | **Claude Sonnet 5** (default) | **84.9%** | $2 / $10 |
 | Claude Opus 5 | 84.2% | $5 / $25 |
 | Claude Opus 4.8 | 83.6% | $5 / $25 |
+| GPT-5.6 Terra | 82.1% | $2 / $12 |
 
-All three fail on the same five damaged files. Further gains come from document
-quality handling, not model spend — so the cheap, fast model wins.
+All four fail on the same handful of damaged files. Further gains come from
+document quality handling, not model spend — so the cheap, fast model wins.
+(Fairness caveat: the prompt was tuned against Sonnet's mistakes, so the
+cross-vendor gap would likely narrow with terra-specific tuning. Terra's
+independent 82% is also exactly what makes it useful as the disagreement
+detector in the cross-model check: strong enough to be meaningful, different
+enough that its errors don't correlate with Claude's.)
 
 **The safety net is measured too.** Format checks catch structural junk; the
 cross-model check catches ambiguous reads (verified live: a misread surname, a
