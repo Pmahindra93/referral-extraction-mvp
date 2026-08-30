@@ -25,7 +25,7 @@ st.set_page_config(page_title="Referral Extraction", layout="wide")
 
 st.markdown("""<style>
 /* slim clinical rule at the very top; hide app-builder chrome */
-[data-testid="stHeader"] { background: #0F6E84; height: 0.3rem; }
+[data-testid="stHeader"] { background: transparent; height: 0.5rem; border-bottom: 1px solid #E2E6E5; }
 [data-testid="stToolbar"], footer { display: none; }
 
 /* page title in Streamlit's native serif — the "form header" voice */
@@ -35,7 +35,7 @@ h3 { font-weight: 600; font-size: 1.05rem; }
 
 /* eyebrow label above the title */
 .eyebrow { font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase;
-           color: #0F6E84; font-weight: 600; margin-bottom: -0.6rem; }
+           color: #5A6B72; font-weight: 600; margin-bottom: -0.6rem; }
 
 /* signature: extracted values read like typed record entries —
    monospace makes character-level checking against the scan easier */
@@ -53,9 +53,18 @@ h3 { font-weight: 600; font-size: 1.05rem; }
 [data-testid="stExpander"] summary { font-weight: 600; }
 </style>""", unsafe_allow_html=True)
 
-st.markdown('<p class="eyebrow">Clinic ops · Referral intake</p>', unsafe_allow_html=True)
-st.title("Referral letter extraction")
-st.caption("Upload referral letters. Flagged fields need a human check before the record is trusted.")
+header_left, header_right = st.columns([3, 1], vertical_alignment="bottom")
+with header_left:
+    st.markdown('<p class="eyebrow">Clinic ops · Referral intake</p>', unsafe_allow_html=True)
+    st.title("Referral letter extraction")
+    st.caption("Upload referral letters. Flagged fields need a human check before the record is trusted.")
+with header_right:
+    cross_check = st.toggle(
+        "Cross-check with a second model",
+        value=bool(config.OPENAI_API_KEY),
+        disabled=not config.OPENAI_API_KEY,
+        help="An independent model re-reads each letter; disagreements are flagged. Needs OPENAI_API_KEY in env.local.",
+    )
 
 
 def show_letter(name: str, data: bytes) -> None:
@@ -111,13 +120,6 @@ uploads = st.file_uploader(
     "Referral letters",
     type=["txt", "docx", "pdf", "png", "jpg", "jpeg", "heic"],
     accept_multiple_files=True,
-)
-
-cross_check = st.toggle(
-    "Cross-check with a second model (flags disagreements)",
-    value=False,
-    disabled=not config.OPENAI_API_KEY,
-    help="Needs OPENAI_API_KEY in env.local",
 )
 
 if not uploads:
