@@ -31,6 +31,12 @@ not what you expected, still extract whatever fields you can.
 Extract the requested fields exactly as they appear in the letter. Rules:
 - Copy values verbatim where possible; do not paraphrase or invent anything.
 - If a field is genuinely absent, use "" (empty string), false, or [] as appropriate.
+- NEVER guess. If a value is partially illegible, do not fill in the unreadable
+  characters — leave the field empty and note the illegibility in
+  additional_findings. An empty field is reviewed by a human; a guessed one
+  may not be.
+- Placeholder text like "as documented", "none listed", "N/A" or "see notes" is
+  NOT a value — treat the field as absent.
 - If something significant does not fit any field (safeguarding concerns, allergy
   warnings, DNR status, a second patient), put it in additional_findings verbatim —
   never silently drop information. Leave additional_findings empty otherwise.
