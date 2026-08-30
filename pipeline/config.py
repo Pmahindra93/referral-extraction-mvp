@@ -17,7 +17,7 @@ load_dotenv(PROJECT_ROOT / "env.local")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 
-CLAUDE_MODEL = "claude-sonnet-5"
+CLAUDE_MODEL = os.getenv("CLAUDE_MODEL", "claude-sonnet-5")
 OPENAI_MODEL = "gpt-5.6-terra"
 
 

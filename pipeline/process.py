@@ -58,7 +58,7 @@ def _tool_definition(schema: Schema) -> dict:
 
 
 def _cache_path(file_name: str, schema: Schema) -> Path:
-    return config.CACHE_DIR / f"{schema.name}--{file_name}.json"
+    return config.CACHE_DIR / f"{config.CLAUDE_MODEL}--{schema.name}--{file_name}.json"
 
 
 def extract(path: Path, schema: Schema | None = None, use_cache: bool = True) -> BaseModel:
