@@ -20,20 +20,43 @@ rules. Tick items as they land; each step gets its own branch, merged to `main` 
 ## Steps
 
 - [x] **Step 0 — Setup**: git repo, GitHub remote, `.gitignore`, `env.local`, `CLAUDE.md`, `PLAN.md`
-- [ ] **Step 1 — Scaffold** (`step-1-scaffold`): package layout, `requirements.txt`,
-      env loading, schema definition (pydantic or dict) matching ground truth
-- [ ] **Step 2 — Ingest** (`step-2-ingest`): txt/docx/pdf/png/jpg/heic → Claude-ready
-      content blocks; unit test for format routing + heic conversion
-- [ ] **Step 3 — Process** (`step-3-process`): Claude extraction call with structured
-      output; disk cache keyed by filename
-- [ ] **Step 4 — Eval** (`step-4-eval`): scoring script over all 56 files; iterate the
-      extraction prompt on per-field failures until accuracy is strong; unit test for
-      normalization/scoring
-- [ ] **Step 5 — Validate** (`step-5-validate`): format checks (dates, NHS number,
-      postcode); optional OpenAI cross-model disagreement flags
-- [ ] **Step 6 — UI** (`step-6-ui`): Streamlit upload + review screen + JSON export
+- [x] **Step 1 — Scaffold** (PR #1): package layout, `requirements.txt`, env loading,
+      pydantic schema verified against ground truth (35 fields, exact match)
+- [x] **Step 2 — Ingest** (PR #2): all six formats → Claude content blocks; 6 unit
+      tests; all 56 dataset files ingest cleanly
+- [x] **Step 3 — Process** (PR #3): Claude tool-use extraction + disk cache. NOT yet
+      run against the live API (keys pending)
+- [x] **Step 4 — Eval** (PR #4): scoring rules + `python -m eval.run`; 7 unit tests.
+      Live accuracy run + prompt iteration still TO DO once keys land
+- [x] **Step 5 — Validate** (PR #5): format checks (4 tests) + optional GPT
+      cross-model disagreement flags (flags only, never overwrites)
+- [x] **Step 6 — UI** (PR #6): Streamlit upload + tabbed side-by-side review + JSON
+      export; headless AppTest render passes
+- [x] **Step 6.5 — Edge-case guards** (PR #7): `document_type` triage flag +
+      `additional_findings` catch-all; eval verified unaffected
+- [x] **Step 6.6 — Schema registry** (PR #8): schemas as config (`schemas/*.json`),
+      generic_referral fallback + routing; eval verified unaffected
+- [x] **Step 7a — Live tuning + review fixes** (PR #9): **84.5% final accuracy**
+      (81.7 → 82.8 → 83.5 → 84.5 over four eval rounds); oversized-image fix;
+      prompt rules from mismatch analysis; crop detection (fires on all damaged
+      scans); Codex findings from PRs 3/4/5/8 fixed; gpt-5.6-terra cross-check
+      via responses.parse. Ceiling notes for README: language/ethnicity absent
+      from narrative letters (~4%), cropped scans unwinnable but flagged.
 - [ ] **Step 7 — README**: architecture, BYOK setup, accuracy result, decisions,
-      what I'd do next
+      what I'd do next (per-field confidence scores; more specialty schemas —
+      now just config files; smarter routing). Blocked on the live eval number.
+
+## Next session: start here
+
+1. User puts keys in `env.local` (gitignored).
+2. `.venv/bin/python -m eval.run --limit 3` — sanity-check the extraction end to end.
+3. Full run `python -m eval.run`, then iterate the prompt in `pipeline/process.py`
+   on the worst fields from `outputs/eval-report.json` (use `--no-cache` after
+   prompt changes).
+4. Try the UI: `streamlit run app.py`.
+5. Write README (Step 7) with the final accuracy number.
+6. PRs #1–#6 are stacked (each targets the previous branch); user reviews and
+   merges on GitHub — never merge for them.
 
 ## Status / notes
 

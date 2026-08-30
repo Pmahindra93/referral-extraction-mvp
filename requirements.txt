@@ -1,5 +1,5 @@
 anthropic>=0.40
-openai>=1.50
+openai>=3.0  # responses.parse used by the cross-model check; tested on 3.6
 pydantic>=2.8
 python-dotenv>=1.0
 python-docx>=1.1

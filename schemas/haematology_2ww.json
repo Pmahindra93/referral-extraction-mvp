@@ -1,0 +1,222 @@
+{
+  "name": "haematology_2ww",
+  "display_name": "Haematology 2WW referral",
+  "document_description": "a GP referral letter for the urgent suspected-cancer (two-week-wait) haematology pathway",
+  "domain_prompt": "Domain rules:\n- Dates: DD/MM/YYYY. NHS number: 'XXX XXX XXXX' with spaces. UBRN: 'XXXX-XXXX-XXXX'.\n- address / practice_address: street address only, WITHOUT the postcode (postcode goes in its own field). Hb is a number only (no units).\n- The condition flags (leukaemia, lymphadenopathy, myeloma, splenomegaly) are the ticked suspicion boxes on the referral; suspected_pathway is the named suspected condition (e.g. 'myeloma', 'acute leukaemia').\n- symptoms and myeloma_features are lists of the individual items stated, using the letter's own wording (e.g. 'Itching', 'Bruising/Bleeding', 'Renal impairment').\n- discussed_with_patient: 'Y' or 'N'.",
+  "groups": {
+    "Patient": [
+      "title",
+      "first_name",
+      "surname",
+      "sex",
+      "date_of_birth",
+      "nhs_number",
+      "address",
+      "postcode",
+      "home_telephone",
+      "mobile",
+      "language",
+      "ethnicity"
+    ],
+    "Referral": [
+      "referral_date",
+      "ubrn",
+      "referring_gp",
+      "practice",
+      "practice_address",
+      "practice_postcode",
+      "practice_telephone",
+      "hospital",
+      "trust"
+    ],
+    "Clinical": [
+      "suspected_pathway",
+      "leukaemia",
+      "lymphadenopathy",
+      "myeloma",
+      "splenomegaly",
+      "lymph_node_size_cm",
+      "lymph_node_site",
+      "symptoms",
+      "myeloma_features",
+      "investigations",
+      "medical_history",
+      "comments",
+      "discussed_with_patient"
+    ],
+    "FBC": [
+      "fbc"
+    ]
+  },
+  "fields": {
+    "title": {
+      "type": "str",
+      "description": "Patient title: Mr/Mrs/Ms/Miss/Dr etc."
+    },
+    "first_name": {
+      "type": "str"
+    },
+    "surname": {
+      "type": "str",
+      "critical": true
+    },
+    "sex": {
+      "type": "str",
+      "description": "'M' or 'F'. If not stated explicitly, infer from title (Mr/Mrs/Ms/Miss) or wording like 'this gentleman'/'this lady'.",
+      "pattern": "^[MF]$",
+      "hint": "expected 'M' or 'F'"
+    },
+    "date_of_birth": {
+      "type": "str",
+      "description": "DD/MM/YYYY",
+      "critical": true,
+      "pattern": "^\\d{2}/\\d{2}/\\d{4}$",
+      "hint": "expected DD/MM/YYYY"
+    },
+    "nhs_number": {
+      "type": "str",
+      "description": "Format 'XXX XXX XXXX' with spaces",
+      "critical": true,
+      "pattern": "^\\d{3} \\d{3} \\d{4}$",
+      "hint": "expected 'XXX XXX XXXX'"
+    },
+    "address": {
+      "type": "str",
+      "description": "Street address WITHOUT postcode"
+    },
+    "postcode": {
+      "type": "str",
+      "pattern": "^[A-Z]{1,2}\\d[A-Z\\d]? ?\\d[A-Z]{2}$",
+      "hint": "not a valid UK postcode"
+    },
+    "home_telephone": {
+      "type": "str"
+    },
+    "mobile": {
+      "type": "str"
+    },
+    "language": {
+      "type": "str",
+      "description": "Patient's main spoken language"
+    },
+    "ethnicity": {
+      "type": "str"
+    },
+    "referral_date": {
+      "type": "str",
+      "description": "DD/MM/YYYY",
+      "pattern": "^\\d{2}/\\d{2}/\\d{4}$",
+      "hint": "expected DD/MM/YYYY"
+    },
+    "ubrn": {
+      "type": "str",
+      "description": "e-Referral booking reference, 'XXXX-XXXX-XXXX'",
+      "pattern": "^\\d{4}-\\d{4}-\\d{4}$",
+      "hint": "expected 'XXXX-XXXX-XXXX'"
+    },
+    "referring_gp": {
+      "type": "str",
+      "description": "Including title, e.g. 'Dr Naveen Malik'"
+    },
+    "practice": {
+      "type": "str"
+    },
+    "practice_address": {
+      "type": "str",
+      "description": "Street address WITHOUT postcode"
+    },
+    "practice_postcode": {
+      "type": "str",
+      "pattern": "^[A-Z]{1,2}\\d[A-Z\\d]? ?\\d[A-Z]{2}$",
+      "hint": "not a valid UK postcode"
+    },
+    "practice_telephone": {
+      "type": "str"
+    },
+    "hospital": {
+      "type": "str"
+    },
+    "trust": {
+      "type": "str",
+      "description": "The NHS trust that operates the destination hospital. If the letter names only the hospital, give that hospital's official NHS trust name from your knowledge (e.g. Homerton University Hospital -> 'Homerton Healthcare NHS Foundation Trust', St Bartholomew's Hospital -> 'Barts Health NHS Trust')."
+    },
+    "suspected_pathway": {
+      "type": "str",
+      "critical": true,
+      "description": "The suspected 2WW pathway, exactly one of: 'myeloma', 'acute leukaemia', 'chronic myeloid leukaemia', 'lymphoma', 'lymphoproliferative disorder', 'unexplained splenomegaly'. Map the letter's wording to the closest of these (e.g. 'CML' -> 'chronic myeloid leukaemia', 'unexplained persistent splenomegaly' -> 'unexplained splenomegaly')."
+    },
+    "leukaemia": {
+      "type": "bool",
+      "description": "true ONLY if this condition is explicitly marked/ticked as suspected on the referral, or explicitly named as the suspected diagnosis. Never infer from symptoms or clinical picture alone."
+    },
+    "lymphadenopathy": {
+      "type": "bool",
+      "description": "true ONLY if this condition is explicitly marked/ticked as suspected on the referral, or explicitly named as the suspected diagnosis. Never infer from symptoms or clinical picture alone."
+    },
+    "myeloma": {
+      "type": "bool",
+      "description": "true ONLY if this condition is explicitly marked/ticked as suspected on the referral, or explicitly named as the suspected diagnosis. Never infer from symptoms or clinical picture alone."
+    },
+    "splenomegaly": {
+      "type": "bool",
+      "description": "true ONLY if this condition is explicitly marked/ticked as suspected on the referral, or explicitly named as the suspected diagnosis. Never infer from symptoms or clinical picture alone."
+    },
+    "lymph_node_size_cm": {
+      "type": "str"
+    },
+    "lymph_node_site": {
+      "type": "str"
+    },
+    "fbc": {
+      "type": "object",
+      "fields": {
+        "wbc": {
+          "type": "str",
+          "description": "White blood cell count, e.g. '3.4'"
+        },
+        "hb": {
+          "type": "str",
+          "description": "Haemoglobin in g/L, number only, e.g. '102'"
+        },
+        "platelets": {
+          "type": "str",
+          "description": "Platelet count, e.g. '88'"
+        },
+        "neutrophils": {
+          "type": "str",
+          "description": "Neutrophil count, e.g. '0.9'"
+        },
+        "lymphocytes": {
+          "type": "str",
+          "description": "Lymphocyte count, e.g. '0.6'"
+        }
+      }
+    },
+    "symptoms": {
+      "type": "list[str]",
+      "description": "ONLY the items given in the letter's explicit symptom list (e.g. after 'Symptoms:'), verbatim. Do not add symptoms mentioned elsewhere in the narrative; empty list if no explicit symptom list."
+    },
+    "myeloma_features": {
+      "type": "list[str]",
+      "description": "Only items explicitly listed as myeloma features on the referral form. Do not infer from the narrative; empty list if none are listed."
+    },
+    "investigations": {
+      "type": "str",
+      "description": "Investigation results done or requested (blood film, repeat FBC, B12/folate, U&E, LDH, imaging, virology, CRP), plus directly related current status such as 'No antibiotics currently'. EXCLUDE the overall clinical-suspicion statement (e.g. 'The film/FBC is concerning for...') and past medical history."
+    },
+    "medical_history": {
+      "type": "str",
+      "description": "Past conditions, regular medications and allergies (including e.g. 'NKDA', 'Allergic to codeine'), verbatim and complete."
+    },
+    "comments": {
+      "type": "str",
+      "description": "The referrer's distinctive remarks only: patient-specific concerns, urgency observations, discussions with specialists, family history worries. EXCLUDE the clinical-suspicion statement ('Clinical picture is consistent with...', 'The film/FBC is concerning for...' — already captured by suspected_pathway) and standard boilerplate: 'The referral has (not) been discussed as an urgent suspected cancer referral', 'Please contact me on ... if further information is needed', greetings and sign-offs. Empty if nothing distinctive remains."
+    },
+    "discussed_with_patient": {
+      "type": "str",
+      "description": "'Y' or 'N'. In narrative letters, 'The referral has been discussed as an urgent suspected cancer referral' means 'Y'; 'has not been discussed' means 'N'.",
+      "pattern": "^[YN]$",
+      "hint": "expected 'Y' or 'N'"
+    }
+  }
+}
