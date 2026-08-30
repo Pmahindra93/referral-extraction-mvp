@@ -137,6 +137,9 @@ exceptions: sex from title, NHS trust from hospital name).
 **Out, deliberately** (per the brief): auth, deployment, production error handling,
 PII/data governance (the dataset is synthetic; a real deployment needs a DPIA,
 UK-hosted or BAA-covered inference, and audit logging before touching patient data).
+Note one deliberate demo-only default: the cross-model check is ON by default, which
+sends letter content to two providers (Anthropic and OpenAI); a real deployment
+would gate that behind the clinic's data-processing agreements.
 
 ## What I'd do next
 
