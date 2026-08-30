@@ -1,8 +1,9 @@
 """Referral extraction review app.
 
-Upload referral letters -> pipeline extracts -> review side-by-side
-(letter on the left, editable fields on the right, flagged fields highlighted)
--> export the corrected JSON.
+Upload referral letters -> pipeline classifies and extracts (haematology 2WW
+letters get the full specialty schema; other referrals fall back to the generic
+schema) -> review side-by-side (letter left, editable fields right, flagged
+fields highlighted) -> export the reviewed JSON.
 
 Run: streamlit run app.py
 """
@@ -17,24 +18,12 @@ from pipeline import config
 from pipeline.ingest import ingest
 from pipeline.output import build_output
 from pipeline.process import extract_bytes
-from pipeline.schema import FullBloodCount, ReferralRecord
+from pipeline.registry import DEFAULT_SCHEMA
 from pipeline.validate import validate
 
 st.set_page_config(page_title="Referral Extraction", layout="wide")
 st.title("Referral letter extraction")
-st.caption("Upload GP referral letters. Fields flagged 🚩 need a human check.")
-
-FIELD_GROUPS = {
-    "Patient": ["title", "first_name", "surname", "sex", "date_of_birth", "nhs_number",
-                "address", "postcode", "home_telephone", "mobile", "language", "ethnicity"],
-    "Referral": ["referral_date", "ubrn", "referring_gp", "practice", "practice_address",
-                 "practice_postcode", "practice_telephone", "hospital", "trust"],
-    "Clinical": ["suspected_pathway", "leukaemia", "lymphadenopathy", "myeloma",
-                 "splenomegaly", "lymph_node_size_cm", "lymph_node_site", "symptoms",
-                 "myeloma_features", "investigations", "medical_history", "comments",
-                 "discussed_with_patient"],
-    "Triage": ["document_type", "additional_findings"],
-}
+st.caption("Upload referral letters. Fields flagged 🚩 need a human check.")
 
 
 def show_letter(name: str, data: bytes) -> None:
@@ -95,13 +84,18 @@ for tab, upload in zip(tabs, uploads):
         data = upload.getvalue()
         try:
             with st.spinner(f"Extracting {upload.name}..."):
-                record = extract_bytes(data, upload.name)
+                record, schema = extract_bytes(data, upload.name)
                 flags = validate(config.CACHE_DIR / "uploads" / upload.name,
-                                 record, cross_check=cross_check)
+                                 record, schema, cross_check=cross_check)
         except Exception as e:
             st.error(f"Extraction failed: {e}")
             continue
 
+        if schema.name != DEFAULT_SCHEMA:
+            st.info(
+                f"ℹ️ Not a haematology 2WW letter — extracted with the "
+                f"**{schema.display_name}** schema instead."
+            )
         if "document_type" in flags:
             st.error(f"⛔ {flags['document_type']}. Fields below are best-effort only.")
         if record.additional_findings.strip():
@@ -116,25 +110,27 @@ for tab, upload in zip(tabs, uploads):
             st.subheader("Letter")
             show_letter(upload.name, data)
         with right:
-            st.subheader("Extracted fields")
+            st.subheader(f"Extracted fields — {schema.display_name}")
             edited = {}
             record_data = record.model_dump()
-            for group, fields in FIELD_GROUPS.items():
+            for group, fields in schema.groups.items():
                 with st.expander(group, expanded=True):
                     for field in fields:
-                        edited[field] = edit_field(
-                            field, record_data[field], flags, upload.name
-                        )
-            with st.expander("FBC", expanded=True):
-                fbc = {}
-                for sub, sub_value in record_data["fbc"].items():
-                    fbc[sub] = edit_field(f"fbc.{sub}", sub_value, flags, upload.name)
-                edited["fbc"] = {k.split(".")[-1]: v for k, v in fbc.items()}
+                        value = record_data[field]
+                        if isinstance(value, dict):  # nested object, e.g. fbc
+                            edited[field] = {
+                                sub: edit_field(f"{field}.{sub}", sub_value, flags,
+                                                upload.name)
+                                for sub, sub_value in value.items()
+                            }
+                        else:
+                            edited[field] = edit_field(field, value, flags, upload.name)
 
             final = build_output(
                 upload.name,
-                ReferralRecord.model_validate(edited),
+                schema.model.model_validate(edited),
                 flags,
+                schema,
             )
             st.download_button(
                 "Download reviewed JSON",
