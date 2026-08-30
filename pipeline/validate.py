@@ -10,7 +10,6 @@ Three layers:
    the same letter; fields where the two models disagree are flagged.
 """
 
-import json
 import re
 from pathlib import Path
 
@@ -106,22 +105,13 @@ def _openai_extract(path: Path, schema: Schema) -> dict:
     content.append({"type": "input_text", "text": "Extract the structured data from this document."})
 
     client = OpenAI(api_key=config.OPENAI_API_KEY)
-    json_schema = {**schema.json_schema, "additionalProperties": False}
-    json_schema["required"] = list(json_schema["properties"])
-    response = client.responses.create(
+    response = client.responses.parse(
         model=config.OPENAI_MODEL,
         instructions=build_system_prompt(schema),
         input=[{"role": "user", "content": content}],
-        text={
-            "format": {
-                "type": "json_schema",
-                "name": "document_record",
-                "schema": json_schema,
-                "strict": False,
-            }
-        },
+        text_format=schema.model,
     )
-    return json.loads(response.output_text)
+    return response.output_parsed.model_dump()
 
 
 def validate(

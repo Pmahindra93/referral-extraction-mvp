@@ -32,16 +32,23 @@ def main() -> None:
         path = config.REFERRAL_DIR / file_name
         print(f"[{i}/{len(ground_truth)}] {file_name} ... ", end="", flush=True)
         try:
-            record = extract(path, use_cache=not args.no_cache)
+            extracted = extract(path, use_cache=not args.no_cache).model_dump()
         except Exception as e:
-            print(f"EXTRACTION FAILED: {e}")
-            per_file[file_name] = 0.0
-            continue
+            print(f"EXTRACTION FAILED: {e} — scoring all fields as misses")
+            extracted = None
 
-        results = compare_record(truth, record.model_dump())
+        results = compare_record(truth, extracted or {})
+        if extracted is None:
+            # Force every comparison to a miss: compare_record substitutes empty
+            # defaults, which would let ground-truth-empty fields "match" a
+            # document we never extracted.
+            for r in results.values():
+                r["match"] = False
+                r["actual"] = "<extraction failed>"
         matched = sum(r["match"] for r in results.values())
         per_file[file_name] = matched / len(results)
-        print(f"{matched}/{len(results)}")
+        if extracted:
+            print(f"{matched}/{len(results)}")
 
         for field, r in results.items():
             per_field[field][1] += 1

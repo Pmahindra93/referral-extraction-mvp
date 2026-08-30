@@ -17,9 +17,9 @@ import streamlit as st
 from pipeline import config
 from pipeline.ingest import ingest
 from pipeline.output import build_output
-from pipeline.process import extract_bytes
-from pipeline.registry import DEFAULT_SCHEMA
-from pipeline.validate import validate
+from pipeline.process import extract, extract_bytes, upload_path
+from pipeline.registry import DEFAULT_SCHEMA, get_schema
+from pipeline.validate import cross_model_flags, validate
 
 st.set_page_config(page_title="Referral Extraction", layout="wide")
 st.title("Referral letter extraction")
@@ -39,12 +39,21 @@ def show_letter(name: str, data: bytes) -> None:
         )
     else:
         # txt/docx/heic: show what the pipeline actually feeds the model
-        tmp = config.CACHE_DIR / "uploads" / name
+        tmp = upload_path(name)
         block = ingest(tmp)[0]
         if block["type"] == "text":
             st.text(block["text"])
         else:  # heic converted to jpeg
             st.image(base64.b64decode(block["source"]["data"]))
+
+
+@st.cache_data(show_spinner="Cross-checking with a second model...")
+def get_cross_flags(file_name: str, schema_name: str) -> dict[str, str]:
+    """Cached so widget interactions don't re-pay a GPT call per rerun."""
+    schema = get_schema(schema_name)
+    path = upload_path(file_name)
+    record = extract(path, schema=schema)  # disk-cached by this point
+    return cross_model_flags(path, record, schema)
 
 
 def edit_field(field: str, value, flags: dict, key_prefix: str):
@@ -85,8 +94,12 @@ for tab, upload in zip(tabs, uploads):
         try:
             with st.spinner(f"Extracting {upload.name}..."):
                 record, schema = extract_bytes(data, upload.name)
-                flags = validate(config.CACHE_DIR / "uploads" / upload.name,
-                                 record, schema, cross_check=cross_check)
+                flags = validate(upload_path(upload.name), record, schema)
+            disagreements = (
+                get_cross_flags(upload.name, schema.name) if cross_check else {}
+            )
+            for field, reason in disagreements.items():
+                flags.setdefault(field, reason)
         except Exception as e:
             st.error(f"Extraction failed: {e}")
             continue
@@ -100,10 +113,23 @@ for tab, upload in zip(tabs, uploads):
             st.error(f"⛔ {flags['document_type']}. Fields below are best-effort only.")
         if record.additional_findings.strip():
             st.warning(f"**Additional findings:** {record.additional_findings}")
+        if cross_check:
+            if disagreements:
+                st.warning(
+                    f"**Cross-model check: {len(disagreements)} disagreement(s)** — "
+                    + "; ".join(
+                        f"`{f}` ({reason})" for f, reason in disagreements.items()
+                    )
+                )
+            else:
+                st.success("Cross-model check: the second model agrees on every field")
         if flags:
-            st.warning(f"{len(flags)} field(s) flagged for review")
+            with st.expander(f"🚩 {len(flags)} field(s) flagged for review"):
+                for field, reason in flags.items():
+                    st.markdown(f"- **{field}** — {reason}")
         else:
             st.success("No fields flagged")
+        download_slot = st.container()
 
         left, right = st.columns([1, 1])
         with left:
@@ -126,14 +152,17 @@ for tab, upload in zip(tabs, uploads):
                         else:
                             edited[field] = edit_field(field, value, flags, upload.name)
 
-            final = build_output(
-                upload.name,
-                schema.model.model_validate(edited),
-                flags,
-                schema,
-            )
+        final = build_output(
+            upload.name,
+            schema.model.model_validate(edited),
+            flags,
+            schema,
+        )
+        # Rendered into the container up top; edits still land because any
+        # edit triggers a rerun before the download can be clicked.
+        with download_slot:
             st.download_button(
-                "Download reviewed JSON",
+                "⬇️ Download reviewed JSON",
                 json.dumps(final, indent=2),
                 file_name=f"{Path(upload.name).stem}.json",
                 mime="application/json",

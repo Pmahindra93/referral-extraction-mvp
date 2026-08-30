@@ -36,6 +36,12 @@ rules. Tick items as they land; each step gets its own branch, merged to `main` 
       `additional_findings` catch-all; eval verified unaffected
 - [x] **Step 6.6 — Schema registry** (PR #8): schemas as config (`schemas/*.json`),
       generic_referral fallback + routing; eval verified unaffected
+- [x] **Step 7a — Live tuning + review fixes** (PR #9): **84.5% final accuracy**
+      (81.7 → 82.8 → 83.5 → 84.5 over four eval rounds); oversized-image fix;
+      prompt rules from mismatch analysis; crop detection (fires on all damaged
+      scans); Codex findings from PRs 3/4/5/8 fixed; gpt-5.6-terra cross-check
+      via responses.parse. Ceiling notes for README: language/ethnicity absent
+      from narrative letters (~4%), cropped scans unwinnable but flagged.
 - [ ] **Step 7 — README**: architecture, BYOK setup, accuracy result, decisions,
       what I'd do next (per-field confidence scores; more specialty schemas —
       now just config files; smarter routing). Blocked on the live eval number.
