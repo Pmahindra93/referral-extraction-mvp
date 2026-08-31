@@ -92,6 +92,11 @@ which real deployments would gate behind the clinic's DPAs).
 5. **More specialties** — each is one config file plus a router.
 6. **Measure the review workflow** with real ops users — time per letter and
    errors caught; the metric the business runs on.
+7. **An API, then FHIR** — wrap the pipeline in a small service
+   (`POST /referrals` → record + flags; the UI becomes one client of it), then
+   map records onto HL7 FHIR resources for EPR/e-RS integration. The UI is how
+   humans trust the data; the API is how systems consume it; FHIR is how the
+   NHS consumes it — same pipeline underneath all three.
 
 ---
 
