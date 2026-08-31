@@ -65,8 +65,8 @@ Plus:
 
 ## Workflow
 
-- The build plan and current status live in `PLAN.md` — read it at the start of a session,
-  tick items off as they're done.
+- The build plan and current status live in `PLAN.md` (local working notes, gitignored) —
+  read it at the start of a session if present, tick items off as they're done.
 - One git branch per build step (e.g. `step-2-ingest`). Push the branch and open a PR;
   the user reviews and merges on GitHub. NEVER merge to main yourself.
 - If the next step is started before the previous PR is merged, branch it off the
