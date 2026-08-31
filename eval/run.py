@@ -19,6 +19,11 @@ def main() -> None:
     parser.add_argument("--no-cache", action="store_true", help="re-run all API calls")
     args = parser.parse_args()
 
+    if not config.GROUND_TRUTH_PATH.exists() or not config.REFERRAL_DIR.exists():
+        raise SystemExit(
+            "Dataset not found. Place the letters at data/referral-files/ and the "
+            "ground truth at data/output-true-values.json (see README)."
+        )
     ground_truth = json.loads(config.GROUND_TRUTH_PATH.read_text())
     if args.limit:
         ground_truth = ground_truth[: args.limit]

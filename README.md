@@ -8,6 +8,8 @@ field a human should check before trusting it.
 
 ## How to test it
 
+Requires Python 3.10+.
+
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
