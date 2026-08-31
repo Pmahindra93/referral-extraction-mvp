@@ -7,3 +7,5 @@ __pycache__/
 .venv/
 .cache/
 outputs/
+PLAN.md
+CHEATSHEET.md
