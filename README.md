@@ -6,30 +6,36 @@ field a human should check before trusting it.
 
 **Accuracy: 84.9%** (1,854 / 2,184 fields) against the provided ground truth.
 
-## 1. Running it
+## How to test it
 
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Add keys to `env.local` (gitignored) in the project root:
+Add keys to `env.local` (gitignored) in the project root, and place the dataset
+(not committed) at `data/referral-files/` + `data/output-true-values.json`:
 
 ```
 ANTHROPIC_API_KEY=sk-ant-...
 OPENAI_API_KEY=sk-...        # optional: second-model cross-check
 ```
 
-Place the dataset (not committed) at `data/referral-files/` and
-`data/output-true-values.json`. Then:
+Then, in order:
 
 ```bash
-streamlit run app.py       # review UI: upload → extract → review flags → export
-python -m eval.run         # accuracy vs ground truth
-pytest                     # 34 unit tests (no API calls)
+streamlit run app.py         # try the product: upload letters from data/referral-files,
+                             #   review flagged fields next to the original, export JSON
+python -m eval.run           # reproduce the 84.9% (per-field breakdown + report;
+                             #   --limit 5 for a quick pass)
+pytest                       # 34 unit tests, no API calls needed
 ```
 
-## 2. The accuracy number
+Good letters to try in the UI: `referral-ciu.txt` (clean), `referral-cyc.png`
+(cropped scan — watch the damage flags), `referral-sbx.pdf` with the cross-check
+toggle on (second model catches a misread surname).
+
+## The accuracy number
 
 `python -m eval.run` scores every ground-truth field (39 per letter, 56 letters):
 normalized exact match for text, spacing-ignored for NHS numbers/phones, set
@@ -51,7 +57,7 @@ models — same worst files every time, so the gap is the documents, not the mod
 | Claude Opus 4.8 | 83.6% | $5 / $25 |
 | GPT-5.6 Terra | 82.1% | $2 / $12 |
 
-## 3. How I thought about it
+## How I thought about it
 
 **The user is a clinic ops team, not a developer** — so the product is an
 upload-and-review UI, not a script. The comparison that matters isn't AI vs
