@@ -15,8 +15,10 @@ python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Add keys to `env.local` (gitignored) in the project root, and place the dataset
-(not committed) at `data/referral-files/` + `data/output-true-values.json`:
+Add keys to `env.local` (gitignored) in the project root. To reproduce the
+accuracy number, also place the dataset (not committed) at `data/referral-files/`
++ `data/output-true-values.json` — optional otherwise: the UI accepts any
+referral letter you upload, and the tests need no data or keys at all:
 
 ```
 ANTHROPIC_API_KEY=sk-ant-...
