@@ -26,8 +26,8 @@ OPENAI_API_KEY=sk-...        # optional: second-model cross-check
 Then, in order:
 
 ```bash
-streamlit run app.py         # try the product: upload letters from data/referral-files,
-                             #   review flagged fields next to the original, export JSON
+streamlit run app.py         # opens at http://localhost:8501 — upload letters from
+                             #   data/referral-files, review flagged fields, export JSON
 python -m eval.run           # reproduce the 84.9% (per-field breakdown + report;
                              #   --limit 5 for a quick pass)
 pytest                       # 34 unit tests, no API calls needed
