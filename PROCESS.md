@@ -102,10 +102,15 @@ consciously deferred rather than silently ignored.
   (fictional patient — using an eval letter would be training on the test set),
   with a keep threshold of +1.0pt agreed before running. Result: 84.5%, within
   noise of baseline — the boundary conventions it teaches were already captured
-  by the description tuning. Discarded per the pre-agreed rule. Together with
-  the model comparison, two independent negative results point the same way:
-  the remaining error is document damage, not prompting — so the next levers
-  are image preprocessing and checksums.
+  by the description tuning. Discarded per the pre-agreed rule.
+- **Tick-box reading hint** (the human noticed demographics appear as checkbox
+  rows on the proforma scans): a targeted prompt hint, re-tested on exactly the
+  14 image-type language/ethnicity misses — zero new wins; where the row is
+  legible the model already reads it without the hint. Discarded.
+
+Three independent negative results (models, few-shot, checkbox hint) all point
+the same way: the remaining error is document damage, not prompting — so the
+next levers are image preprocessing and checksums.
 
 ## Timeline of accuracy
 
