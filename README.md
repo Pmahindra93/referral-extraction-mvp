@@ -67,6 +67,8 @@ models — same worst files every time, so the gap is the documents, not the mod
 upload-and-review UI, not a script. The comparison that matters isn't AI vs
 human accuracy; it's *(AI + 30-second review)* vs *(human + 5 minutes of typing)*.
 
+![Architecture](docs/architecture.jpg)
+
 **Pipeline**: `ingest → process → validate → output`
 
 - **One well-prompted Claude call**, not an agent — extraction needs a precise
