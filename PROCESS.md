@@ -92,6 +92,21 @@ consciously deferred rather than silently ignored.
   merges across bases; recovered from the stack tip in one merge. Sequential
   stacked PRs + automation need a wait-for-retarget between merges.
 
+## Experiments that didn't make the cut
+
+- **Bigger models** (asked by the human): Opus 5 scored 84.2%, Opus 4.8 83.6%,
+  GPT-5.6 Terra 82.1% — vs Sonnet 5's 84.9%, all failing on the same damaged
+  files. Kept the cheap model; recorded the comparison in the README.
+- **Few-shot exemplar** (proposed by the AI, tested at the human's suggestion):
+  a synthetic worked letter+record in the prompt, built contamination-safe
+  (fictional patient — using an eval letter would be training on the test set),
+  with a keep threshold of +1.0pt agreed before running. Result: 84.5%, within
+  noise of baseline — the boundary conventions it teaches were already captured
+  by the description tuning. Discarded per the pre-agreed rule. Together with
+  the model comparison, two independent negative results point the same way:
+  the remaining error is document damage, not prompting — so the next levers
+  are image preprocessing and checksums.
+
 ## Timeline of accuracy
 
 | Round | Change | Accuracy |
